@@ -31,14 +31,14 @@ library(irace)
 # ---------- Processing inputs from command line ----------
 args <- commandArgs(trailingOnly = TRUE)   # Take command line arguments
 # Test if there are two arguments if not, return an error
-if (length(args) < 4) {
+if (length(args) < 3) {
   stop("Error: Missing arguments. Please provide the following arguments: \
       1) Input folder containing the irace output files \
       2) Parameters file name \
-      3) Location file name \
-      4) Output folder \
-      5) (Optional) Type of criteria used to select the best value of configuration for location (default is minimum) \
-      6) (Optional) Significancy used for the configuration value (default is 2 decimals)",
+      3) Output folder \
+      4) (Optional) Type of criteria used to select the best value of configuration for location (default is minimum)
+      and the options are (min|max|mean|median|mode) \
+      5) (Optional) Significancy used for the configuration value (default is 2 decimals)",
     call. = FALSE
   )
 }
@@ -52,41 +52,35 @@ parameters_path <- args[2]
 if (!file.exists(parameters_path)) {
   stop("Error: Parameters file does not exist", call. = FALSE)
 }
-# Test if the location file exists
-locations_path <- args[3]
-if (!file.exists(locations_path)) {
-  stop("Error: Location file does not exist", call. = FALSE)
-}
 # Test if the output folder exists
-output_folder <- args[4]
+output_folder <- args[3]
 if (!dir.exists(output_folder)) {
   stop("Error: Output folder does not exist", call. = FALSE)
 }
 # Test if the criteria is valid
-criteria <- ifelse(length(args) > 4, args[5], "min")
-if (!criteria %in% c("min", "max")) {
+criteria <- ifelse(length(args) > 3, args[4], "min")
+if (!criteria %in% c("min", "max", "mean", "median", "mode")) {
   stop("Error: Invalid criteria. Please use 'min' or 'max'", call. = FALSE)
 }
 # Test if the significancy is valid
-significancy <- ifelse(length(args) > 5, as.numeric(args[6]), 2)
+significancy <- ifelse(length(args) > 4, as.numeric(args[5]), 2)
 if (!is.numeric(significancy)) {
   stop("Error: Invalid significancy. Please use a numeric value", call. = FALSE)
 }
 
 # ---------- Process irace output files ----------
-stn_file <- generate_stn_file(irace_folder, parameter_path, location_file, output_folder, criteria, significancy)
+stn_file <- generate_stn_file(irace_folder, parameter_path, output_folder, criteria, significancy)
 save_file(stn_file, output_folder)
 
 # ---------- Functions definitions ----------
 # Function to process all .Rdata files and generate the STN file
 # input: irace_folder - Path to the folder containing the .Rdata files
 #        parameters_path - Path to the parameters file
-#        locations_path - Path to the locations file
 #        output_folder - Path to the output folder
 #        criteria - Criteria used to select the best value of configuration for location
 #        significancy - Significancy used for the configuration value
 # output: stn_file - Data frame with the STN file
-generate_stn_file <- function(irace_folder, parameters_path, locations_path, output_folder, criteria, significancy) {
+generate_stn_file <- function(irace_folder, parameters_path, output_folder, criteria, significancy) {
   # Read the .Rdata files
   rdata_files <- list.files(irace_folder, pattern = "\\.Rdata$", full.names = TRUE)
   if (length(rdata_files) == 0) {
@@ -95,9 +89,6 @@ generate_stn_file <- function(irace_folder, parameters_path, locations_path, out
 
   # Read the parameters
   params <- read_parameters_file(parameters_path = parameters_path)
-
-  # Read the locations
-  locations <- read_locations_file(locations_path = locations_path)
 
   message("Processing ", length(rdata_files), " .Rdata files (equivalent to the same runs quantity)")
 
@@ -116,7 +107,7 @@ generate_stn_file <- function(irace_folder, parameters_path, locations_path, out
   #    - Agregar los parámetros START y END, con START para todas las de iteración 1 y END para las últimas élites.
   # 8. Agregar el STN del archivo actual al archivo STN final -> stn_file.
   # 9. Repetir el proceso para cada archivo .Rdata.
-  # 10. Calcular el valor final de cada locación usando el diccionario de locaciones.
+  # 10. Calcular el valor final de cada locación usando el diccionario de locaciones y el criterio seleccionado.
   # 11. Generar el archivo STN final, conservando el ID de la run y todos los datos a lo largo de las iteraciones.
 
   # Formato de salida
@@ -145,18 +136,48 @@ generate_stn_file <- function(irace_folder, parameters_path, locations_path, out
 
 # Function to read and process the parameters file
 # input: parameters_path - Path to the parameters file
-# output: params - Data frame with the parameters
+# output: params - Data frame with the parameters information
 read_parameters_file <- function(parameters_path) {
-  # TODO: Implementar la lectura del archivo de parámetros
-  read.table(parameters_path, header = TRUE, sep = "\t", stringsAsFactors = FALSE)
-}
+  # Parameters file format:
+  # NAME CONDITIONAL TYPE VALUES_ARRAY LOCATIONS_ARRAY
+  # Where:
+  # - NAME: Name of the parameter
+  # - CONDITIONAL: Indicates if the parameter is conditional (TRUE|FALSE)
+  # - TYPE: Type of the parameter (c -> categorical| o -> ordinal | i -> integer | r -> real)
+  # - VALUES_ARRAY: Array of possible values for the parameter (comma-separated)
+  #   - Type c: Values are the possible categories
+  #   - Type o: Values are the possible order of the categories
+  #   - Type i: Values are the integer range (min,max)
+  #   - Type r: Values are the real range (min,max)
+  # - LOCATIONS_ARRAY: Array of possible locations for the parameter (comma-separated)
+  #  - Type c|o: Values are the possible categories like (param:value, param:value, ...)
+  #  - Type i|r: Values are the significant and step of the range like (significance, step)
 
-# Function to read and process the locations file
-# input: locations_path - Path to the locations file
-# output: locations - Data frame with the locations
-read_locations_file <- function(locations_path) {
-  # TODO: Implementar la lectura del archivo de locaciones
-  read.table(locations_path, header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+  params <- read.table(parameters_path, header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+
+  # Process the VALUES_ARRAY column based on the TYPE
+  params$VALUES_ARRAY <- mapply(function(type, values) {
+    if (type %in% c("c", "o")) {
+      return(strsplit(values, ",")[[1]])
+    } else if (type %in% c("i", "r")) {
+      return(as.numeric(strsplit(values, ",")[[1]]))
+    } else {
+      stop("Error: Invalid parameter type", call. = FALSE)
+    }
+  }, params$TYPE, params$VALUES_ARRAY)
+
+  # Process the LOCATIONS_ARRAY column based on the TYPE
+  params$LOCATIONS_ARRAY <- mapply(function(type, locations) {
+    if (type %in% c("c", "o")) {
+      return(strsplit(locations, ",")[[1]])
+    } else if (type %in% c("i", "r")) {
+      return(as.numeric(strsplit(locations, ",")[[1]]))
+    } else {
+      stop("Error: Invalid parameter type", call. = FALSE)
+    }
+  }, params$TYPE, params$LOCATIONS_ARRAY)
+
+  return(params)
 }
 
 # Function to save the STN file
