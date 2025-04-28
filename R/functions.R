@@ -322,17 +322,17 @@ generate_stn_file <- function(irace_folder, parameters, criteria, significancy =
             child <- next_configs[[child_id]]
             
             line <- data.frame(
-              RUN = run_idx,
-              VALUE1 = location_quality[current$LOCATION_CODE],
-              LOCATION1 = current$LOCATION_CODE,
-              ELITE1 = location_results[[current$LOCATION_CODE]]$ELITE,
-              TYPE1 = ifelse(iteration == 1, "START", ifelse(iteration == total_iterations - 1, "END", "MIDDLE")),
-              ITERATION1 = iteration,
-              VALUE2 = location_quality[child$LOCATION_CODE],
-              LOCATION2 = child$LOCATION_CODE,
-              ELITE2 = location_results[[child$LOCATION_CODE]]$ELITE,
-              TYPE2 = ifelse(iteration + 1 == 1, "START", ifelse(iteration + 1 == total_iterations, "END", "MIDDLE")),
-              ITERATION2 = iteration + 1
+              Run = run_idx,
+              Fitness1 = location_quality[current$LOCATION_CODE],
+              Solution1 = current$LOCATION_CODE,
+              Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
+              Type1 = ifelse(iteration == 1, "START", ifelse(iteration == total_iterations - 1, "END", "MIDDLE")),
+              Iteration1 = iteration,
+              Fitness2 = location_quality[child$LOCATION_CODE],
+              Solution2 = child$LOCATION_CODE,
+              Elite2 = location_results[[child$LOCATION_CODE]]$ELITE,
+              Type2 = ifelse(iteration + 1 == 1, "START", ifelse(iteration + 1 == total_iterations, "END", "MIDDLE")),
+              Iteration2 = iteration + 1
             )
             stn_file <- rbind(stn_file, line)
           }
@@ -340,17 +340,17 @@ generate_stn_file <- function(irace_folder, parameters, criteria, significancy =
         # If no children and in the first iteration, connect to itself
         else if (iteration == 1) {
           line <- data.frame(
-            RUN = run_idx,
-            VALUE1 = location_quality[current$LOCATION_CODE],
-            LOCATION1 = current$LOCATION_CODE,
-            ELITE1 = location_results[[current$LOCATION_CODE]]$ELITE,
-            TYPE1 = "START",
-            ITERATION1 = 1,
-            VALUE2 = location_quality[current$LOCATION_CODE],
-            LOCATION2 = current$LOCATION_CODE,
-            ELITE2 = location_results[[current$LOCATION_CODE]]$ELITE,
-            TYPE2 = "START",
-            ITERATION2 = 1
+            Run = run_idx,
+            Fitness1 = location_quality[current$LOCATION_CODE],
+            Solution1 = current$LOCATION_CODE,
+            Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
+            Type1 = "START",
+            Iteration1 = 1,
+            Fitness2 = location_quality[current$LOCATION_CODE],
+            Solution2 = current$LOCATION_CODE,
+            Elite2 = location_results[[current$LOCATION_CODE]]$ELITE,
+            Type2 = "START",
+            Iteration2 = 1
           )
           stn_file <- rbind(stn_file, line)
         }

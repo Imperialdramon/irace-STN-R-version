@@ -73,22 +73,22 @@ alpha       | FALSE       | r    | (0.00,5.00)           | (0.1,2)
 
 The output file is a tab-delimited (`\t`) text file with the following columns:
 
-RUN | VALUE1 | LOCATION1 | ELITE1 | TYPE1  | VALUE2 | LOCATION2 | ELITE2 | TYPE2
-----|--------|-----------|--------|--------|--------|-----------|--------|--------
-1   | 12.34  | 0123X     | TRUE   | START  | 15.67  | 0124X     | FALSE  | MIDDLE
+Run | Fitness1 | Solution1 | Elite1 | Type1  | Fitness2 | Solution2 | Elite2 | Type2
+----|----------|-----------|--------|--------|----------|-----------|--------|--------
+1   | 12.34    | 0123X     | TRUE   | START  | 15.67    | 0124X     | FALSE  | MIDDLE
 
 Where:
 - RUN: Run identifier (sequential number of the input file).
-- VALUE1 / VALUE2: Quality values of the configuration, selected according to the chosen criteria.
-- LOCATION1 / LOCATION2: Generated location codes based on the configuration parameters.
-- ELITE1 / ELITE2: TRUE if at least one configuration in that location was elite; FALSE otherwise.
-- TYPE1 / TYPE2: Indicates the position in the trajectory (`START`, `MIDDLE`, or `END`).
+- Fitness1 / Fitness2: Quality values of the configuration, selected according to the chosen criteria.
+- Solution1 / Solution2: Generated location codes based on the configuration parameters.
+- Elite1 / Elite2: TRUE if at least one configuration in that location was elite; FALSE otherwise.
+- Type1 / Type2: Indicates the position in the trajectory (`START`, `MIDDLE`, or `END`).
 
 ---
 
 ## Example Execution
 
-Rscript R/main.R Tests/irace-files/ACOTSP-N/Data Tests/parameters.csv Tests/irace-files/ACOTSP-N/Results mean 2
+Rscript R/main.R Tests/ACOTSP-N/Data Tests/parameters.csv Tests/ACOTSP-N/Results mean 2
 
 This command will process the irace runs, calculate the location qualities using the mean, and round the values to 2 decimal places.
 
