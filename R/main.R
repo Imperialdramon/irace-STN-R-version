@@ -67,15 +67,3 @@ stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy)
 
 # Save the STN file
 save_file(stn_file, output_folder)
-
-# parameters_file <- "Tests/parameters.csv"
-# parameters <- read_parameters_file(parameters_file)
-# #parameters$domains$ants
-# stn_file <- generate_stn_file(
-#   #irace_folder = "Test-irace/",
-#   irace_folder = "Tests/irace-files/ACOTSP-N/",
-#   parameters = parameters,
-#   criteria = "mean",
-#   significancy = 2
-# )
-# save_file(stn_file, "Test-irace/")

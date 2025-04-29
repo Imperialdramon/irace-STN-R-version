@@ -320,18 +320,17 @@ generate_stn_file <- function(irace_folder, parameters, criteria, significancy =
         if (length(children_ids) > 0) {
           for (child_id in children_ids) {
             child <- next_configs[[child_id]]
-            
             line <- data.frame(
               Run = run_idx,
               Fitness1 = location_quality[current$LOCATION_CODE],
               Solution1 = current$LOCATION_CODE,
-              Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
-              Type1 = ifelse(iteration == 1, "START", ifelse(iteration == total_iterations - 1, "END", "MIDDLE")),
+              Elite1 = ifelse(location_results[[current$LOCATION_CODE]]$ELITE == TRUE, "ELITE", "REGULAR"),
+              Type1 = ifelse(iteration == 1, "START", ifelse(iteration == total_iterations - 1, "END", "STANDARD")),
               Iteration1 = iteration,
               Fitness2 = location_quality[child$LOCATION_CODE],
               Solution2 = child$LOCATION_CODE,
-              Elite2 = location_results[[child$LOCATION_CODE]]$ELITE,
-              Type2 = ifelse(iteration + 1 == 1, "START", ifelse(iteration + 1 == total_iterations, "END", "MIDDLE")),
+              Elite2 = ifelse(location_results[[child$LOCATION_CODE]]$ELITE == TRUE, "ELITE", "REGULAR"),
+              Type2 = ifelse(iteration + 1 == 1, "START", ifelse(iteration + 1 == total_iterations, "END", "STANDARD")),
               Iteration2 = iteration + 1
             )
             stn_file <- rbind(stn_file, line)
@@ -343,12 +342,12 @@ generate_stn_file <- function(irace_folder, parameters, criteria, significancy =
             Run = run_idx,
             Fitness1 = location_quality[current$LOCATION_CODE],
             Solution1 = current$LOCATION_CODE,
-            Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
+            Elite1 = ifelse(location_results[[current$LOCATION_CODE]]$ELITE == TRUE, "ELITE", "REGULAR"),
             Type1 = "START",
             Iteration1 = 1,
             Fitness2 = location_quality[current$LOCATION_CODE],
             Solution2 = current$LOCATION_CODE,
-            Elite2 = location_results[[current$LOCATION_CODE]]$ELITE,
+            Elite2 = ifelse(location_results[[current$LOCATION_CODE]]$ELITE == TRUE, "ELITE", "REGULAR"),
             Type2 = "START",
             Iteration2 = 1
           )
