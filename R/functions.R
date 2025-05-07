@@ -299,9 +299,10 @@ generate_stn_file <- function(irace_folder, parameters, criteria, significancy =
   location_quality <- sapply(names(location_results), function(loc_code) {
     qualities <- location_results[[loc_code]]$qualities
     value <- apply_selection(qualities, criteria)
-    return(round(value, significancy))
+    value <- round(value, significancy)
+    value <- formatC(value, format = "f", digits = significancy)
+    return(value)
   })
-  names(location_quality) <- names(location_results)
   # --------- Third: Generate the STN file ---------
   # For each run, iterate through the configurations and generate the STN file
   for (run_idx in seq_along(configurations_per_run)) {
