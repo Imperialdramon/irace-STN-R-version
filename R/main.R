@@ -35,7 +35,9 @@ if (length(args) < 3) {
       2) Parameters file name
       3) Output folder
       4) (Optional) Selection criteria (min|max|mean|median|mode), default = min
-      5) (Optional) Significancy (number of decimals), default = 2", call. = FALSE)
+      5) (Optional) Significancy (number of decimals), default = 2
+      6) (Optional) Use original type for nodes, default = FALSE
+      7) (Optional) Use original elite status for nodes, default = FALSE", call. = FALSE)
 }
 
 # Validate input folder (convert to absolute path)
@@ -59,11 +61,23 @@ if (is.na(significancy) || !is.numeric(significancy)) {
   stop("Error: Invalid significancy. Please provide a numeric value.", call. = FALSE)
 }
 
+# Validate original type for nodes
+original_type <- ifelse(length(args) > 5, as.logical(args[6]), FALSE)
+if (!is.logical(original_type)) {
+  stop("Error: Invalid original type for nodes. Please provide TRUE or FALSE.", call. = FALSE)
+}
+
+# Validate original elite status for nodes
+original_elite <- ifelse(length(args) > 6, as.logical(args[7]), FALSE)
+if (!is.logical(original_elite)) {
+  stop("Error: Invalid original elite status for nodes. Please provide TRUE or FALSE.", call. = FALSE)
+}
+
 # Read the parameters file
 parameters <- read_parameters_file(parameters_file = parameters_file)
 
 # Process the data
-stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy)
+stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy, original_type, original_elite)
 
 # Save the STN file
 save_file(stn_file, output_folder)

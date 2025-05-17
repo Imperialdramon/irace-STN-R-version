@@ -40,6 +40,8 @@ Rscript R/main.R <irace_folder> <parameters_file> <output_folder> [criteria] [si
 3) output_folder: Folder where the output STN file will be generated.
 4) (Optional) criteria: Selection method for configuration quality (`min`, `max`, `mean`, `median`, `mode`). Default: `min`.
 5) (Optional) significancy: Number of decimal places for rounding the quality values. Default: 2.
+6) (Optional) original_elite: Use original elite status for nodes. Default: FALSE.
+7) (Optional) original_type: Use original type for nodes. Default: FALSE.
 
 ---
 
@@ -82,7 +84,9 @@ Where:
 - Fitness1 / Fitness2: Quality values of the configuration, selected according to the chosen criteria.
 - Solution1 / Solution2: Generated location codes based on the configuration parameters.
 - Elite1 / Elite2: A location is marked as `ELITE` if at least one configuration within it is elite; otherwise, it is marked as `REGULAR`.
+If the original_elite option is enabled, the elite status will be assigned based on each configuration’s original (individual) elite value, rather than using the aggregated rule at the location level.
 - Type1 / Type2: Reflects the relative position in the trajectory, where types follow the order: `START` < `STANDARD` < `END`. A location inherits the best (i.e., highest) type among all its nodes. For example, if any node in the location has type END, the location will be assigned END.
+If the original_type option is enabled, the type will correspond to each configuration’s own trajectory type, instead of being aggregated at the location level.
 
 ---
 

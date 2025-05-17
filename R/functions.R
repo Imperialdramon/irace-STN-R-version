@@ -233,11 +233,11 @@ get_location_code <- function(config, iraceResults, parameters) {
 #' irace_folder <- "path/to/irace/folder"
 #' parameters <- read_parameters_file("path/to/parameters.csv")
 #' criteria <- "mean"
-#' stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy = 3)
+#' stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy = 3, original_type = FALSE, original_elite = FALSE)
 #' }
 #'
 #' @export
-generate_stn_file <- function(irace_folder, parameters, criteria, significancy = 2) {
+generate_stn_file <- function(irace_folder, parameters, criteria, significancy = 2, original_type = FALSE, original_elite = FALSE) {
   # Auxiliary function to apply selection criteria
   apply_selection <- function(values, criteria) {
     if (length(values) == 0) return(NA)
@@ -311,6 +311,8 @@ generate_stn_file <- function(irace_folder, parameters, criteria, significancy =
         # Store the configuration in the dictionary for this iteration
         config_dict[[as.character(config$.ID.)]] <- list(
           LOCATION_CODE = location_code,
+          TYPE = type,
+          ELITE = elite,
           PARENT_ID = config$.PARENT.
         )
       }
@@ -348,13 +350,13 @@ generate_stn_file <- function(irace_folder, parameters, criteria, significancy =
               Run = run_idx,
               Fitness1 = location_quality[current$LOCATION_CODE],
               Solution1 = current$LOCATION_CODE,
-              Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
-              Type1 = location_results[[current$LOCATION_CODE]]$TYPE,
+              Elite1 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
+              Type1 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
               Iteration1 = iteration,
               Fitness2 = location_quality[child$LOCATION_CODE],
               Solution2 = child$LOCATION_CODE,
-              Elite2 = location_results[[child$LOCATION_CODE]]$ELITE,
-              Type2 = location_results[[child$LOCATION_CODE]]$TYPE,
+              Elite2 = ifelse(original_elite, child$ELITE, location_results[[child$LOCATION_CODE]]$ELITE),
+              Type2 = ifelse(original_type, child$TYPE, location_results[[child$LOCATION_CODE]]$TYPE),
               Iteration2 = iteration + 1
             )
             stn_file <- rbind(stn_file, line)
@@ -366,13 +368,13 @@ generate_stn_file <- function(irace_folder, parameters, criteria, significancy =
             Run = run_idx,
             Fitness1 = location_quality[current$LOCATION_CODE],
             Solution1 = current$LOCATION_CODE,
-            Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
-            Type1 = location_results[[current$LOCATION_CODE]]$TYPE,
+            Elite1 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
+            Type1 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
             Iteration1 = 1,
             Fitness2 = location_quality[current$LOCATION_CODE],
             Solution2 = current$LOCATION_CODE,
-            Elite2 = location_results[[current$LOCATION_CODE]]$ELITE,
-            Type2 = location_results[[current$LOCATION_CODE]]$TYPE,
+            Elite2 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
+            Type2 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
             Iteration2 = 1
           )
           stn_file <- rbind(stn_file, line)
