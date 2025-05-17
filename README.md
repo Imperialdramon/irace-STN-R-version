@@ -73,16 +73,16 @@ alpha       | FALSE       | r    | (0.00,5.00)           | (0.1,2)
 
 The output file is a tab-delimited (`\t`) text file with the following columns:
 
-Run | Fitness1 | Solution1 | Elite1 | Type1  | Fitness2 | Solution2 | Elite2 | Type2
-----|----------|-----------|--------|--------|----------|-----------|--------|--------
-1   | 12.34    | 0123X     | TRUE   | START  | 15.67    | 0124X     | FALSE  | MIDDLE
+Run | Fitness1 | Solution1 | Elite1  | Type1  | Fitness2 | Solution2 | Elite2   | Type2
+----|----------|-----------|---------|--------|----------|-----------|----------|--------
+1   | 12.34    | 0123X     | ELITE   | START  | 15.67    | 0124X     | REGULAR  | STANDARD
 
 Where:
 - RUN: Run identifier (sequential number of the input file).
 - Fitness1 / Fitness2: Quality values of the configuration, selected according to the chosen criteria.
 - Solution1 / Solution2: Generated location codes based on the configuration parameters.
-- Elite1 / Elite2: TRUE if at least one configuration in that location was elite; FALSE otherwise.
-- Type1 / Type2: Indicates the position in the trajectory (`START`, `MIDDLE`, or `END`).
+- Elite1 / Elite2: A location is marked as `ELITE` if at least one configuration within it is elite; otherwise, it is marked as `REGULAR`.
+- Type1 / Type2: Reflects the relative position in the trajectory, where types follow the order: `START` < `STANDARD` < `END`. A location inherits the best (i.e., highest) type among all its nodes. For example, if any node in the location has type END, the location will be assigned END.
 
 ---
 
