@@ -276,7 +276,7 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
     total_iterations <- length(iraceResults$allElites)
     run_configurations <- list()
     # For each iteration, get the configurations
-    for (iteration in 1:(total_iterations - 1)) {
+    for (iteration in 1:total_iterations) {
       configs <- getConfigurationByIteration(iraceResults, iteration, drop.metadata = FALSE)
       config_dict <- list()
       # For each configuration, get the location code and results
@@ -285,40 +285,50 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
         location_code <- get_location_code(config, iraceResults, parameters)
         experiment_results <- iraceResults$experiments[, as.character(config$.ID.)]
         experiment_results <- experiment_results[!is.na(experiment_results)]
-        # Get configuration type based on the iteration
         if (iteration == 1) {
           type <- "START"
-        } else if (iteration == total_iterations - 1) {
+        } else if (iteration == total_iterations) {
           type <- "END"
         } else {
           type <- "STANDARD"
         }
-        # Get configuration elite status
-        if (config$.ID. %in% elite_ids || type == "END") {
+        if (config$.ID. %in% elite_ids) {
           elite <- "ELITE"
         } else {
           elite <- "REGULAR"
         }
         # Initialize location entry if it does not exist
         if (!location_code %in% names(location_results)) {
-          location_results[[location_code]] <- list(QUALITIES = c(), ELITE = "REGULAR", TYPE = "START")
-        }
-        # Append qualities to the location entry
-        location_results[[location_code]]$QUALITIES <- c(location_results[[location_code]]$QUALITIES, experiment_results)
-        # Update ELITE if necessary
-        if (!original_elite) {
-          # Update ELITE status if the current elite status is more important than the existing one
-          if (elite == "ELITE" && location_results[[location_code]]$ELITE == "REGULAR") {
-            location_results[[location_code]]$ELITE <- "ELITE"
+          location_results[[location_code]] <- list(
+            QUALITIES = experiment_results,
+            ELITE = elite,
+            TYPE = type
+          )
+        } else {
+          # Append qualities to the location entry
+          location_results[[location_code]]$QUALITIES <- c(location_results[[location_code]]$QUALITIES, experiment_results)
+          # Update ELITE if necessary
+          if (!original_elite) {
+            # Update ELITE status if the current elite status is more important than the existing one
+            if (elite == "ELITE" && location_results[[location_code]]$ELITE == "REGULAR") {
+              location_results[[location_code]]$ELITE <- "ELITE"
+            }
+          }
+          # Update TYPE if if necessary
+          if (!original_type) {
+            # Update TYPE if the current type is more important than the existing one
+            current_type <- location_results[[location_code]]$TYPE
+            if (get_type_rank(type, type_priority) > get_type_rank(current_type, type_priority)) {
+              location_results[[location_code]]$TYPE <- type
+            }
           }
         }
-        # Update TYPE if if necessary
-        if (!original_type) {
-          # Update TYPE if the current type is more important than the existing one
-          if (get_type_rank(type, type_priority) > get_type_rank(location_results[[location_code]]$TYPE, type_priority)) {
-            location_results[[location_code]]$TYPE <- type
-          }
-        } 
+        # if (location_code == "43160038005103500010XXXXXX101" && type == "END") {
+        #   print(iteration)
+        #   print(config$.ID.)
+        #   print(elite)
+        #   print(config$.PARENT.)
+        # }
         # Store the configuration in the dictionary for this iteration
         config_dict[[as.character(config$.ID.)]] <- list(
           LOCATION_CODE = location_code,
@@ -344,51 +354,74 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
   for (run_idx in seq_along(configurations_per_run)) {
     run_configurations <- configurations_per_run[[run_idx]]
     total_iterations <- length(run_configurations)
-    # For each iteration, iterate through the configurations (except the last one)
-    for (iteration in 1:(total_iterations - 1)) {
+    # For each iteration, iterate through the configurations
+    for (iteration in 1:total_iterations) {
       current_configs <- run_configurations[[iteration]]
-      next_configs <- run_configurations[[iteration + 1]]
+      if (iteration == 1) {
+        prev_configs <- NULL
+      } else {
+        prev_configs <- run_configurations[[iteration - 1]]
+      }
       # For each configuration in the current iteration
       for (config_id in names(current_configs)) {
         current <- current_configs[[config_id]]
-        # Search for children in the next iteration
-        children_ids <- names(next_configs)[sapply(next_configs, function(child) !is.na(child$PARENT_ID) && child$PARENT_ID == as.numeric(config_id))]
-        # If there are children, connect to them
-        if (length(children_ids) > 0) {
-          for (child_id in children_ids) {
-            child <- next_configs[[child_id]]
+        if (iteration == 1) {
+          # Check if the current configuration is descarted (no children)
+          if (current$ELITE == "REGULAR") {
             line <- data.frame(
               Run = run_idx,
               Fitness1 = location_quality[current$LOCATION_CODE],
               Solution1 = current$LOCATION_CODE,
               Elite1 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
               Type1 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
-              Iteration1 = iteration,
-              Fitness2 = location_quality[child$LOCATION_CODE],
-              Solution2 = child$LOCATION_CODE,
-              Elite2 = ifelse(original_elite, child$ELITE, location_results[[child$LOCATION_CODE]]$ELITE),
-              Type2 = ifelse(original_type, child$TYPE, location_results[[child$LOCATION_CODE]]$TYPE),
-              Iteration2 = iteration + 1
+              Iteration1 = 1,
+              Fitness2 = location_quality[current$LOCATION_CODE],
+              Solution2 = current$LOCATION_CODE,
+              Elite2 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
+              Type2 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
+              Iteration2 = 1
             )
             stn_file <- rbind(stn_file, line)
           }
-        }
-        # If no children and in the first iteration, connect to itself
-        else if (iteration == 1) {
-          line <- data.frame(
-            Run = run_idx,
-            Fitness1 = location_quality[current$LOCATION_CODE],
-            Solution1 = current$LOCATION_CODE,
-            Elite1 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
-            Type1 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
-            Iteration1 = 1,
-            Fitness2 = location_quality[current$LOCATION_CODE],
-            Solution2 = current$LOCATION_CODE,
-            Elite2 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
-            Type2 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
-            Iteration2 = 1
-          )
-          stn_file <- rbind(stn_file, line)
+        } else {
+          parent_id <- current$PARENT_ID
+          # If the parent is found, connect to it
+          if (!is.na(parent_id) && parent_id %in% names(prev_configs)) {
+            parent <- prev_configs[[as.character(parent_id)]]
+            line <- data.frame(
+              Run = run_idx,
+              Fitness1 = location_quality[parent$LOCATION_CODE],
+              Solution1 = parent$LOCATION_CODE,
+              Elite1 = ifelse(original_elite, parent$ELITE, location_results[[parent$LOCATION_CODE]]$ELITE),
+              Type1 = ifelse(original_type, parent$TYPE, location_results[[parent$LOCATION_CODE]]$TYPE),
+              Iteration1 = iteration - 1,
+              Fitness2 = location_quality[current$LOCATION_CODE],
+              Solution2 = current$LOCATION_CODE,
+              Elite2 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
+              Type2 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
+              Iteration2 = iteration
+            )
+            stn_file <- rbind(stn_file, line)
+          } else {
+            # If the parent is not found and the current configuration is elite, it connects to itself.
+            # Because the configuration exists from a much earlier iteration than the current ones.
+            if (current$ELITE == "ELITE") {
+              line <- data.frame(
+                Run = run_idx,
+                Fitness1 = location_quality[current$LOCATION_CODE],
+                Solution1 = current$LOCATION_CODE,
+                Elite1 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
+                Type1 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
+                Iteration1 = iteration - 1,
+                Fitness2 = location_quality[current$LOCATION_CODE],
+                Solution2 = current$LOCATION_CODE,
+                Elite2 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
+                Type2 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
+                Iteration2 = iteration
+              )
+              stn_file <- rbind(stn_file, line)
+            }
+          }
         }
       }
     }

@@ -84,18 +84,18 @@ if (!is.logical(original_type)) {
 
 # Validate significancy
 type_permutation_value <- ifelse(length(args) > 7, as.numeric(args[8]), 1)
-if (is.na(type_permutation_value) || !is.numeric(type_permutation_value)) {
-  stop("Error: Invalid type permutation value. Please provide a numeric value.", call. = FALSE)
+if (is.na(type_permutation_value) || !is.numeric(type_permutation_value) || type_permutation_value < 1 || type_permutation_value > 6) {
+  stop("Error: Invalid type permutation value. Please provide a numeric value between 1 and 6.", call. = FALSE)
 }
 
 # Permutations of types
 types_permutations <- list(
-  c("START", "STANDARD", "END"),   # 1
-  c("START", "END", "STANDARD"),   # 2
-  c("STANDARD", "START", "END"),   # 3
-  c("STANDARD", "END", "START"),   # 4
-  c("END", "START", "STANDARD"),   # 5
-  c("END", "STANDARD", "START")    # 6
+  c("START", "STANDARD", "END"),
+  c("START", "END", "STANDARD"),
+  c("STANDARD", "START", "END"),
+  c("STANDARD", "END", "START"),
+  c("END", "START", "STANDARD"),
+  c("END", "STANDARD", "START")
 )
 
 # Validate type permutation value
@@ -119,4 +119,7 @@ stn_file <- generate_stn_file(
 )
 
 # Save the STN file
-save_file(stn_file, output_folder)
+save_file(
+  stn_file=stn_file,
+  output_folder=output_folder
+)

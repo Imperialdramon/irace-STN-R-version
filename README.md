@@ -12,7 +12,6 @@ The goal is to compile all runs into a single structured network file (STN), whi
 
 - R version ≥ 4.0
 - irace version ≥ 4.2
-- Optional: package `here` (not required by default)
 
 ---
 
@@ -63,7 +62,6 @@ The `type_permutation_value` corresponds to one of the following priority orders
 | 6     | `c("END", "STANDARD", "START")`         |
 
 For example, if `type_permutation_value = 3`, the priority order is: `"STANDARD"` < `"START"` < `"END"`.
-
 
 ---
 
