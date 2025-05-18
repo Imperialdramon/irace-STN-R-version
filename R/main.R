@@ -36,8 +36,17 @@ if (length(args) < 3) {
       3) Output folder
       4) (Optional) Selection criteria (min|max|mean|median|mode), default = min
       5) (Optional) Significancy (number of decimals), default = 2
-      6) (Optional) Use original type for nodes, default = FALSE
-      7) (Optional) Use original elite status for nodes, default = FALSE", call. = FALSE)
+      6) (Optional) Use original elite status for nodes, default = FALSE
+      7) (Optional) Use original type for nodes, default = FALSE
+      8) (Optional) Index of permutation with the order of importance of the types, default = 2
+        The permutations are:
+        1) START, STANDARD, END
+        2) START, END, STANDARD
+        3) STANDARD, START, END
+        4) STANDARD, END, START
+        5) END, START, STANDARD
+        6) END, STANDARD, START
+      ", call. = FALSE)
 }
 
 # Validate input folder (convert to absolute path)
@@ -61,23 +70,53 @@ if (is.na(significancy) || !is.numeric(significancy)) {
   stop("Error: Invalid significancy. Please provide a numeric value.", call. = FALSE)
 }
 
+# Validate original elite status for nodes
+original_elite <- ifelse(length(args) > 5, as.logical(args[6]), FALSE)
+if (!is.logical(original_elite)) {
+  stop("Error: Invalid original elite status for nodes. Please provide TRUE or FALSE.", call. = FALSE)
+}
+
 # Validate original type for nodes
-original_type <- ifelse(length(args) > 5, as.logical(args[6]), FALSE)
+original_type <- ifelse(length(args) > 6, as.logical(args[7]), FALSE)
 if (!is.logical(original_type)) {
   stop("Error: Invalid original type for nodes. Please provide TRUE or FALSE.", call. = FALSE)
 }
 
-# Validate original elite status for nodes
-original_elite <- ifelse(length(args) > 6, as.logical(args[7]), FALSE)
-if (!is.logical(original_elite)) {
-  stop("Error: Invalid original elite status for nodes. Please provide TRUE or FALSE.", call. = FALSE)
+# Validate significancy
+type_permutation_value <- ifelse(length(args) > 7, as.numeric(args[8]), 1)
+if (is.na(type_permutation_value) || !is.numeric(type_permutation_value)) {
+  stop("Error: Invalid type permutation value. Please provide a numeric value.", call. = FALSE)
+}
+
+# Permutations of types
+types_permutations <- list(
+  c("START", "STANDARD", "END"),   # 1
+  c("START", "END", "STANDARD"),   # 2
+  c("STANDARD", "START", "END"),   # 3
+  c("STANDARD", "END", "START"),   # 4
+  c("END", "START", "STANDARD"),   # 5
+  c("END", "STANDARD", "START")    # 6
+)
+
+# Validate type permutation value
+type_priority <- types_permutations[[type_permutation_value]]
+if (is.null(type_priority)) {
+  stop("Error: Invalid type permutation value.", call. = FALSE)
 }
 
 # Read the parameters file
 parameters <- read_parameters_file(parameters_file = parameters_file)
 
 # Process the data
-stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy, original_type, original_elite)
+stn_file <- generate_stn_file(
+  irace_folder=irace_folder,
+  parameters=parameters,
+  criteria=criteria,
+  significancy=significancy,
+  original_elite=original_elite,
+  original_type=original_type,
+  type_priority=type_priority
+)
 
 # Save the STN file
 save_file(stn_file, output_folder)

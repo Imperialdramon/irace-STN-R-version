@@ -217,8 +217,15 @@ get_location_code <- function(config, iraceResults, parameters) {
 #' @param parameters A data frame containing the parameters and their domains, including values and locations.
 #' @param criteria A string specifying the criteria used to select the best configuration value for each location.
 #'        Possible values are `"min"`, `"max"`, `"mean"`, `"median"`, or `"mode"`.
+#'        Defaults to `"min"`.
 #' @param significancy An integer specifying the number of decimal places to round the configuration values.
 #'        Defaults to 2.
+#' @param original_elite A boolean indicating whether to use the original elite status for nodes.
+#'        Defaults to `FALSE`.
+#' @param original_type A boolean indicating whether to use the original type for nodes.
+#'        Defaults to `FALSE`.
+#' @param type_priority A character vector specifying the order of importance for the types.
+#'        The default order is `c("START", "STANDARD", "END")`.
 #'
 #' @return A data frame representing the STN file.
 #'
@@ -233,11 +240,15 @@ get_location_code <- function(config, iraceResults, parameters) {
 #' irace_folder <- "path/to/irace/folder"
 #' parameters <- read_parameters_file("path/to/parameters.csv")
 #' criteria <- "mean"
-#' stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy = 3, original_type = FALSE, original_elite = FALSE)
+#' stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy = 3, original_type = FALSE, original_elite = FALSE, type_priority = c("START", "STANDARD", "END"))
 #' }
 #'
 #' @export
-generate_stn_file <- function(irace_folder, parameters, criteria, significancy = 2, original_type = FALSE, original_elite = FALSE) {
+generate_stn_file <- function(irace_folder, parameters, criteria = "min", significancy = 2, original_elite = FALSE, original_type = FALSE, type_priority = c("START", "STANDARD", "END")) {
+  # Auxiliary function to get the priority of the type
+  get_type_rank <- function(type, priority) {
+    match(type, priority)
+  }
   # Auxiliary function to apply selection criteria
   apply_selection <- function(values, criteria) {
     if (length(values) == 0) return(NA)
@@ -294,25 +305,25 @@ generate_stn_file <- function(irace_folder, parameters, criteria, significancy =
         }
         # Append qualities to the location entry
         location_results[[location_code]]$QUALITIES <- c(location_results[[location_code]]$QUALITIES, experiment_results)
-        # Update ELITE status if the configuration is elite (or if it's the last iteration)
-        # The relevant order logic is: REGULAR < ELITE
-        should_update_elite <- elite == "ELITE" && location_results[[location_code]]$ELITE == "REGULAR"
-        if (should_update_elite) {
-          location_results[[location_code]]$ELITE <- "ELITE"
+        # Update ELITE if necessary
+        if (!original_elite) {
+          # Update ELITE status if the current elite status is more important than the existing one
+          if (elite == "ELITE" && location_results[[location_code]]$ELITE == "REGULAR") {
+            location_results[[location_code]]$ELITE <- "ELITE"
+          }
         }
-        # Get the current TYPE from the location results
-        current_type <- location_results[[location_code]]$TYPE
-        # Update the TYPE if the current type is "START" and the new type is not "START"
-        # The relevant order logic is: START < STANDARD < END
-        should_update_type <- (current_type == "START" && type != "START") || (current_type == "STANDARD" && type == "END")
-        if (should_update_type) {
-          location_results[[location_code]]$TYPE <- type
-        }
+        # Update TYPE if if necessary
+        if (!original_type) {
+          # Update TYPE if the current type is more important than the existing one
+          if (get_type_rank(type, type_priority) > get_type_rank(location_results[[location_code]]$TYPE, type_priority)) {
+            location_results[[location_code]]$TYPE <- type
+          }
+        } 
         # Store the configuration in the dictionary for this iteration
         config_dict[[as.character(config$.ID.)]] <- list(
           LOCATION_CODE = location_code,
-          TYPE = type,
           ELITE = elite,
+          TYPE = type,
           PARENT_ID = config$.PARENT.
         )
       }

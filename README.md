@@ -32,16 +32,38 @@ The goal is to compile all runs into a single structured network file (STN), whi
 
 From the project root, using Rscript:
 
-Rscript R/main.R <irace_folder> <parameters_file> <output_folder> [criteria] [significancy]
+Rscript R/main.R <irace_folder> <parameters_file> <output_folder> [criteria] [significancy] [original_elite] [original_type] [type_permutation_value]
 
 ### Required Arguments:
-1) irace_folder: Folder containing the irace output files (`.Rdata`).
-2) parameters_file: CSV file defining the parameter configuration.
-3) output_folder: Folder where the output STN file will be generated.
-4) (Optional) criteria: Selection method for configuration quality (`min`, `max`, `mean`, `median`, `mode`). Default: `min`.
-5) (Optional) significancy: Number of decimal places for rounding the quality values. Default: 2.
-6) (Optional) original_elite: Use original elite status for nodes. Default: FALSE.
-7) (Optional) original_type: Use original type for nodes. Default: FALSE.
+
+| Argument               | Description                                                                                  | Default       |
+|------------------------|----------------------------------------------------------------------------------------------|---------------|
+| `irace_folder`         | Folder containing the irace output files (`.Rdata`).                                         | —             |
+| `parameters_file`      | CSV file defining the parameter configurations.                                              | —             |
+| `output_folder`        | Folder where the output STN file will be generated.                                          | —             |
+| `criteria`             | Selection method for configuration quality (`min`, `max`, `mean`, `median`, `mode`).         | `min`         |
+| `significancy`         | Number of decimal places for rounding the quality values.                                    | 2             |
+| `original_elite`       | Whether to use the original elite status for nodes (`TRUE` or `FALSE`).                      | `FALSE`       |
+| `original_type`        | Whether to use the original type for nodes (`TRUE` or `FALSE`).                              | `FALSE`       |
+| `type_permutation_value` | Integer index selecting the priority order for types when `original_type = FALSE`.         | 1             |
+
+---
+
+### Type Priority Permutations
+
+The `type_permutation_value` corresponds to one of the following priority orders used to decide the relative importance of node types when combining results. This affects how locations inherit the "best" type from their nodes.
+
+| Index | Type Priority Order                      |
+|-------|-----------------------------------------|
+| 1     | `c("START", "STANDARD", "END")`         |
+| 2     | `c("START", "END", "STANDARD")`         |
+| 3     | `c("STANDARD", "START", "END")`         |
+| 4     | `c("STANDARD", "END", "START")`         |
+| 5     | `c("END", "START", "STANDARD")`         |
+| 6     | `c("END", "STANDARD", "START")`         |
+
+For example, if `type_permutation_value = 3`, the priority order is: `"STANDARD"` < `"START"` < `"END"`.
+
 
 ---
 
@@ -80,21 +102,21 @@ Run | Fitness1 | Solution1 | Elite1  | Type1  | Fitness2 | Solution2 | Elite2   
 1   | 12.34    | 0123X     | ELITE   | START  | 15.67    | 0124X     | REGULAR  | STANDARD
 
 Where:
-- RUN: Run identifier (sequential number of the input file).
-- Fitness1 / Fitness2: Quality values of the configuration, selected according to the chosen criteria.
-- Solution1 / Solution2: Generated location codes based on the configuration parameters.
-- Elite1 / Elite2: A location is marked as `ELITE` if at least one configuration within it is elite; otherwise, it is marked as `REGULAR`.
-If the original_elite option is enabled, the elite status will be assigned based on each configuration’s original (individual) elite value, rather than using the aggregated rule at the location level.
-- Type1 / Type2: Reflects the relative position in the trajectory, where types follow the order: `START` < `STANDARD` < `END`. A location inherits the best (i.e., highest) type among all its nodes. For example, if any node in the location has type END, the location will be assigned END.
-If the original_type option is enabled, the type will correspond to each configuration’s own trajectory type, instead of being aggregated at the location level.
+- **RUN**: Run identifier (sequential number of the input file).
+- **Fitness1** / **Fitness2**: Quality values of the configuration, selected according to the chosen criteria.
+- **Solution1** / **Solution2**: Generated location codes based on the configuration parameters.
+- **Elite1** / **Elite2**:  
+  A location is marked as `ELITE` if at least one configuration within it is elite; otherwise, it is marked as `REGULAR`.   If the `original_elite` option is enabled (`TRUE`), the elite status will be assigned based on each configuration’s original (individual) elite value, rather than using the aggregated rule at the location level.
+- **Type1** / **Type2**: Reflects the relative position in the trajectory, where types follow the order: `START` < `END` < `STANDARD`.  
+  A location inherits the best (i.e., highest) type among all its nodes. For example, if any node in the location has type `END`, the location will be assigned `END`. If the `original_type` option is enabled (`TRUE`), the type will correspond to each configuration’s own trajectory type, instead of being aggregated at the location level.
 
 ---
 
 ## Example Execution
 
-Rscript R/main.R Tests/ACOTSP-N/Data Tests/parameters.csv Tests/ACOTSP-N/Results mean 2
+Rscript R/main.R Tests/ACOTSP-N/Data Tests/parameters.csv Tests/ACOTSP-N/Results mean 2 FALSE FALSE 1
 
-This command will process the irace runs, calculate the location qualities using the mean, and round the values to 2 decimal places.
+This command will process the irace runs, calculate the location qualities using the mean, and round the values to 2 decimal places, using the first permutation of types to priorize the updates of locations.
 
 ---
 
