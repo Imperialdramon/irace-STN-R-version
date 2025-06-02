@@ -220,10 +220,6 @@ get_location_code <- function(config, iraceResults, parameters) {
 #'        Defaults to `"min"`.
 #' @param significancy An integer specifying the number of decimal places to round the configuration values.
 #'        Defaults to 2.
-#' @param original_elite A boolean indicating whether to use the original elite status for nodes.
-#'        Defaults to `FALSE`.
-#' @param original_type A boolean indicating whether to use the original type for nodes.
-#'        Defaults to `FALSE`.
 #' @param type_priority A character vector specifying the order of importance for the types.
 #'        The default order is `c("START", "STANDARD", "END")`.
 #'
@@ -240,11 +236,11 @@ get_location_code <- function(config, iraceResults, parameters) {
 #' irace_folder <- "path/to/irace/folder"
 #' parameters <- read_parameters_file("path/to/parameters.csv")
 #' criteria <- "mean"
-#' stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy = 3, original_type = FALSE, original_elite = FALSE, type_priority = c("START", "STANDARD", "END"))
+#' stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy = 3, type_priority = c("START", "STANDARD", "END"))
 #' }
 #'
 #' @export
-generate_stn_file <- function(irace_folder, parameters, criteria = "min", significancy = 2, original_elite = FALSE, original_type = FALSE, type_priority = c("START", "STANDARD", "END")) {
+generate_stn_file <- function(irace_folder, parameters, criteria = "min", significancy = 2, type_priority = c("START", "STANDARD", "END")) {
   # Auxiliary function to get the priority of the type
   get_type_rank <- function(type, priority) {
     match(type, priority)
@@ -307,28 +303,16 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
         } else {
           # Append qualities to the location entry
           location_results[[location_code]]$QUALITIES <- c(location_results[[location_code]]$QUALITIES, experiment_results)
-          # Update ELITE if necessary
-          if (!original_elite) {
-            # Update ELITE status if the current elite status is more important than the existing one
-            if (elite == "ELITE" && location_results[[location_code]]$ELITE == "REGULAR") {
-              location_results[[location_code]]$ELITE <- "ELITE"
-            }
+          # Update ELITE status if the current elite status is more important than the existing one
+          if (elite == "ELITE" && location_results[[location_code]]$ELITE == "REGULAR") {
+            location_results[[location_code]]$ELITE <- "ELITE"
           }
-          # Update TYPE if if necessary
-          if (!original_type) {
-            # Update TYPE if the current type is more important than the existing one
-            current_type <- location_results[[location_code]]$TYPE
-            if (get_type_rank(type, type_priority) > get_type_rank(current_type, type_priority)) {
-              location_results[[location_code]]$TYPE <- type
-            }
+          # Update TYPE if the current type is more important than the existing one
+          current_type <- location_results[[location_code]]$TYPE
+          if (get_type_rank(type, type_priority) > get_type_rank(current_type, type_priority)) {
+            location_results[[location_code]]$TYPE <- type
           }
         }
-        # if (location_code == "43160038005103500010XXXXXX101" && type == "END") {
-        #   print(iteration)
-        #   print(config$.ID.)
-        #   print(elite)
-        #   print(config$.PARENT.)
-        # }
         # Store the configuration in the dictionary for this iteration
         config_dict[[as.character(config$.ID.)]] <- list(
           LOCATION_CODE = location_code,
@@ -366,23 +350,25 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
       for (config_id in names(current_configs)) {
         current <- current_configs[[config_id]]
         if (iteration == 1) {
-          # Check if the current configuration is descarted (no children)
-          if (current$ELITE == "REGULAR") {
-            line <- data.frame(
-              Run = run_idx,
-              Fitness1 = location_quality[current$LOCATION_CODE],
-              Solution1 = current$LOCATION_CODE,
-              Elite1 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
-              Type1 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
-              Iteration1 = 1,
-              Fitness2 = location_quality[current$LOCATION_CODE],
-              Solution2 = current$LOCATION_CODE,
-              Elite2 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
-              Type2 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
-              Iteration2 = 1
-            )
-            stn_file <- rbind(stn_file, line)
-          }
+          # Autorefernce to represent the start of the run
+          line <- data.frame(
+            Run = run_idx,
+            Fitness1 = location_quality[current$LOCATION_CODE],
+            Solution1 = current$LOCATION_CODE,
+            Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
+            Original_Elite1 = current$ELITE,
+            Type1 = location_results[[current$LOCATION_CODE]]$TYPE,
+            Original_Type1 = current$TYPE,
+            Iteration1 = 1,
+            Fitness2 = location_quality[current$LOCATION_CODE],
+            Solution2 = current$LOCATION_CODE,
+            Elite2 = location_results[[current$LOCATION_CODE]]$ELITE,
+            Original_Elite2 = current$ELITE,
+            Type2 = location_results[[current$LOCATION_CODE]]$TYPE,
+            Original_Type2 = current$TYPE,
+            Iteration2 = 1
+          )
+          stn_file <- rbind(stn_file, line)
         } else {
           parent_id <- current$PARENT_ID
           # If the parent is found, connect to it
@@ -392,13 +378,17 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
               Run = run_idx,
               Fitness1 = location_quality[parent$LOCATION_CODE],
               Solution1 = parent$LOCATION_CODE,
-              Elite1 = ifelse(original_elite, parent$ELITE, location_results[[parent$LOCATION_CODE]]$ELITE),
-              Type1 = ifelse(original_type, parent$TYPE, location_results[[parent$LOCATION_CODE]]$TYPE),
+              Elite1 = location_results[[parent$LOCATION_CODE]]$ELITE,
+              Original_Elite1 = parent$ELITE,
+              Type1 = location_results[[parent$LOCATION_CODE]]$TYPE,
+              Original_Type1 = parent$TYPE,
               Iteration1 = iteration - 1,
               Fitness2 = location_quality[current$LOCATION_CODE],
               Solution2 = current$LOCATION_CODE,
-              Elite2 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
-              Type2 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
+              Elite2 = location_results[[current$LOCATION_CODE]]$ELITE,
+              Original_Elite2 = current$ELITE,
+              Type2 = location_results[[current$LOCATION_CODE]]$TYPE,
+              Original_Type2 = current$TYPE,
               Iteration2 = iteration
             )
             stn_file <- rbind(stn_file, line)
@@ -410,13 +400,17 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
                 Run = run_idx,
                 Fitness1 = location_quality[current$LOCATION_CODE],
                 Solution1 = current$LOCATION_CODE,
-                Elite1 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
-                Type1 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
+                Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
+                Original_Elite1 = current$ELITE,
+                Type1 = location_results[[current$LOCATION_CODE]]$TYPE,
+                Original_Type1 = current$TYPE,
                 Iteration1 = iteration - 1,
                 Fitness2 = location_quality[current$LOCATION_CODE],
                 Solution2 = current$LOCATION_CODE,
-                Elite2 = ifelse(original_elite, current$ELITE, location_results[[current$LOCATION_CODE]]$ELITE),
-                Type2 = ifelse(original_type, current$TYPE, location_results[[current$LOCATION_CODE]]$TYPE),
+                Elite2 = location_results[[current$LOCATION_CODE]]$ELITE,
+                Original_Elite2 = current$ELITE,
+                Type2 = location_results[[current$LOCATION_CODE]]$TYPE,
+                Original_Type2 = current$TYPE,
                 Iteration2 = iteration
               )
               stn_file <- rbind(stn_file, line)

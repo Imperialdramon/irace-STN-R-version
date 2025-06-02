@@ -36,9 +36,7 @@ if (length(args) < 3) {
       3) Output folder
       4) (Optional) Selection criteria (min|max|mean|median|mode), default = min
       5) (Optional) Significancy (number of decimals), default = 2
-      6) (Optional) Use original elite status for nodes, default = FALSE
-      7) (Optional) Use original type for nodes, default = FALSE
-      8) (Optional) Index of permutation with the order of importance of the types, default = 2
+      6) (Optional) Index of permutation with the order of importance of the types, default = 2
         The permutations are:
         1) START, STANDARD, END
         2) START, END, STANDARD
@@ -70,20 +68,8 @@ if (is.na(significancy) || !is.numeric(significancy)) {
   stop("Error: Invalid significancy. Please provide a numeric value.", call. = FALSE)
 }
 
-# Validate original elite status for nodes
-original_elite <- ifelse(length(args) > 5, as.logical(args[6]), FALSE)
-if (!is.logical(original_elite)) {
-  stop("Error: Invalid original elite status for nodes. Please provide TRUE or FALSE.", call. = FALSE)
-}
-
-# Validate original type for nodes
-original_type <- ifelse(length(args) > 6, as.logical(args[7]), FALSE)
-if (!is.logical(original_type)) {
-  stop("Error: Invalid original type for nodes. Please provide TRUE or FALSE.", call. = FALSE)
-}
-
 # Validate significancy
-type_permutation_value <- ifelse(length(args) > 7, as.numeric(args[8]), 1)
+type_permutation_value <- ifelse(length(args) > 5, as.numeric(args[6]), 1)
 if (is.na(type_permutation_value) || !is.numeric(type_permutation_value) || type_permutation_value < 1 || type_permutation_value > 6) {
   stop("Error: Invalid type permutation value. Please provide a numeric value between 1 and 6.", call. = FALSE)
 }
@@ -113,8 +99,6 @@ stn_file <- generate_stn_file(
   parameters=parameters,
   criteria=criteria,
   significancy=significancy,
-  original_elite=original_elite,
-  original_type=original_type,
   type_priority=type_priority
 )
 
