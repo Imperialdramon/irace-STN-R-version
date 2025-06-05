@@ -236,11 +236,11 @@ get_location_code <- function(config, iraceResults, parameters) {
 #' irace_folder <- "path/to/irace/folder"
 #' parameters <- read_parameters_file("path/to/parameters.csv")
 #' criteria <- "mean"
-#' stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy = 3, type_priority = c("START", "STANDARD", "END"))
+#' stn_file <- generate_stn_file(irace_folder, parameters, criteria, significancy = 3, type_priority = c("STANDARD", "START", "END"))
 #' }
 #'
 #' @export
-generate_stn_file <- function(irace_folder, parameters, criteria = "min", significancy = 2, type_priority = c("START", "STANDARD", "END")) {
+generate_stn_file <- function(irace_folder, parameters, criteria = "min", significancy = 2, type_priority = c("STANDARD", "START", "END")) {
   # Auxiliary function to get the priority of the type
   get_type_rank <- function(type, priority) {
     match(type, priority)
@@ -269,11 +269,11 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
   for (run_idx in seq_along(rdata_files)) {
     iraceResults <- read_logfile(rdata_files[run_idx])
     elite_ids <- unlist(iraceResults$allElites)
-    total_iterations <- length(iraceResults$allElites)
+    total_iterations <- length(iraceResults$raceData)
     run_configurations <- list()
     # For each iteration, get the configurations
     for (iteration in 1:total_iterations) {
-      configs <- getConfigurationByIteration(iraceResults, iteration, drop.metadata = FALSE)
+      configs <- iraceResults$raceData[[iteration]]
       config_dict <- list()
       # For each configuration, get the location code and results
       for (config_idx in 1:nrow(configs)) {

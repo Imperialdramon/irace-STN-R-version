@@ -69,7 +69,7 @@ if (is.na(significancy) || !is.numeric(significancy)) {
 }
 
 # Validate significancy
-type_permutation_value <- ifelse(length(args) > 5, as.numeric(args[6]), 1)
+type_permutation_value <- ifelse(length(args) > 5, as.numeric(args[6]), 3)
 if (is.na(type_permutation_value) || !is.numeric(type_permutation_value) || type_permutation_value < 1 || type_permutation_value > 6) {
   stop("Error: Invalid type permutation value. Please provide a numeric value between 1 and 6.", call. = FALSE)
 }
