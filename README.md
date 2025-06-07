@@ -10,8 +10,9 @@ The goal is to compile all runs into a single structured network file (STN-i), w
 
 ## Requirements
 
-- R version ≥ 4.0
-- irace version ≥ 4.2
+- R version ≥ 4.0  
+- irace version ≥ 4.2 (specifically, the modified version that allows access to `raceData`, available at: [https://github.com/Imperialdramon/irace-with-raceData](https://github.com/Imperialdramon/irace-with-raceData))
+
 
 ---
 
@@ -42,7 +43,7 @@ Rscript R/main.R <irace_folder> <parameters_file> <output_folder> [criteria] [si
 | `output_folder`        | Folder where the output STN-i file will be generated.                                        | —             |
 | `criteria`             | Selection method for configuration quality (`min`, `max`, `mean`, `median`, `mode`).         | `min`         |
 | `significancy`         | Number of decimal places for rounding the quality values.                                    | 2             |
-| `type_permutation_value` | Integer index selecting the priority order for types when `original_type = FALSE`.         | 1             |
+| `type_permutation_value` | Integer index selecting the priority order for types when `original_type = FALSE`.         | 3             |
 
 ---
 
@@ -93,12 +94,13 @@ alpha       | FALSE       | r    | (0.00,5.00)           | (0.1,2)
 
 The output file is a tab-delimited (`\t`) text file with the following columns:
 
-Run | Fitness1 | Solution1 | Elite1  | Original_Elite1 | Type1  | Original_Type1 | Iteration1 | Fitness2 | Solution2 | Elite2  | Original_Elite2 | Type2    | Original_Type2 | Iteration2
-----|----------|-----------|---------|-----------------|--------|----------------|------------|----------|-----------|---------|-----------------|----------|----------------|------------
-1   | 12.34    | 0123X     | ELITE   | ELITE           | START  | START          | 1          | 15.67    | 0124X     | REGULAR | REGULAR         | END      | STANDARD       | 2
+Run | Path  |Fitness1 | Solution1 | Elite1  | Original_Elite1 | Type1  | Original_Type1 | Iteration1 | Fitness2 | Solution2 | Elite2  | Original_Elite2 | Type2    | Original_Type2 | Iteration2
+----|-------|---------|-----------|---------|-----------------|--------|----------------|------------|----------|-----------|---------|-----------------|----------|----------------|------------
+1   | TRUE  |   12.34 | 0123X     | ELITE   | ELITE           | START  | START          | 1          | 15.67    | 0124X     | REGULAR | REGULAR         | END      | STANDARD       | 2
 
 Where:
-- **RUN**: Run identifier (sequential number of the input file).
+- **Run**: Run identifier (sequential number of the input file).
+- **Path**: Indicates whether an arc should be considered. It is used to represent that a node does not have a parent when it is a regular configuration of the first iteration that is discarded or when it is an elite configuration that passes to the next iteration.
 - **Fitness1** / **Fitness2**: Quality values of the configuration, selected according to the chosen criteria.
 - **Solution1** / **Solution2**: Generated location codes based on the configuration parameters.
 - **Elite1** / **Elite2**: A location is marked as `ELITE` if at least one configuration within it is elite; otherwise, it is marked as `REGULAR`.

@@ -353,6 +353,7 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
           # Autorefernce to represent the start of the run
           line <- data.frame(
             Run = run_idx,
+            Path = FALSE,
             Fitness1 = location_quality[current$LOCATION_CODE],
             Solution1 = current$LOCATION_CODE,
             Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
@@ -376,6 +377,7 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
             parent <- prev_configs[[as.character(parent_id)]]
             line <- data.frame(
               Run = run_idx,
+              Path = TRUE,
               Fitness1 = location_quality[parent$LOCATION_CODE],
               Solution1 = parent$LOCATION_CODE,
               Elite1 = location_results[[parent$LOCATION_CODE]]$ELITE,
@@ -398,6 +400,7 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
             if (current$ELITE == "ELITE") {
               line <- data.frame(
                 Run = run_idx,
+                Path = TRUE,
                 Fitness1 = location_quality[current$LOCATION_CODE],
                 Solution1 = current$LOCATION_CODE,
                 Elite1 = location_results[[current$LOCATION_CODE]]$ELITE,
