@@ -1,6 +1,6 @@
 #########################################################################
 # Irace Caster - STN File Generator for Single Algorithms
-# Authors: Pablo Estobar
+# Author: Pablo Estobar
 # Date: May 2025
 # Description:
 # This script processes the output from multiple runs of a single
@@ -11,8 +11,7 @@
 # Using this data, the script generates a consolidated STN file.
 #########################################################################
 
-# ---------- Load required packages --------
-## Check if 'irace' is installed and if version is >= 4.2
+# ---------- Load required packages ----------
 if (!requireNamespace("irace", quietly = TRUE)) {
   stop("Error: The irace package is not installed. Please install it with 'install.packages(\"irace\")'", call. = FALSE)
 } else if (packageVersion("irace") < "4.2") {
@@ -21,61 +20,61 @@ if (!requireNamespace("irace", quietly = TRUE)) {
 
 library(irace)
 
-# ---------- Load functions from functions.R ----------
-## Important: Always functions.R must be in the same folder as this script
+# ---------- Load utility functions ----------
 source("R/functions.R")
 
-# ---------- Processing inputs from command line ----------
-args <- commandArgs(trailingOnly = TRUE) # Take command line arguments
-
-# Validate number of arguments
-if (length(args) < 3) {
-  stop("Error: Missing arguments. Please provide the following:
-      1) Input folder containing the irace output files
-      2) Parameters file name
-      3) Output folder
-      4) (Optional) Selection criteria (min|max|mean|median|mode), default = min
-      5) (Optional) Significancy (number of decimals), default = 2
-      6) (Optional) Index of permutation with the order of importance of the types, default = 2
-        The permutations are:
-        1) START, STANDARD, END
-        2) START, END, STANDARD
-        3) STANDARD, START, END
-        4) STANDARD, END, START
-        5) END, START, STANDARD
-        6) END, STANDARD, START
-      ", call. = FALSE)
+# ---------- Parse command line arguments ----------
+parse_arguments <- function(args) {
+  parsed <- list()
+  for (arg in args) {
+    if (grepl("^--", arg)) {
+      parts <- strsplit(sub("^--", "", arg), "=")[[1]]
+      if (length(parts) == 2) {
+        parsed[[parts[1]]] <- parts[2]
+      } else {
+        stop(paste("Invalid argument format:", arg), call. = FALSE)
+      }
+    }
+  }
+  return(parsed)
 }
 
-# Validate input folder (convert to absolute path)
-irace_folder <- normalizePath(args[1], mustWork = TRUE)
+args <- commandArgs(trailingOnly = TRUE)
+params <- parse_arguments(args)
 
-# Validate parameters file (convert to absolute path)
-parameters_file <- normalizePath(args[2], mustWork = TRUE)
+# ---------- Validate required arguments ----------
+required_args <- c("input", "parameters", "output")
 
-# Validate output folder (convert to absolute path)
-output_folder <- normalizePath(args[3], mustWork = TRUE)
+for (param_name in required_args) {
+  if (is.null(params[[param_name]])) {
+    stop(paste("Missing required argument: --", param_name, sep = ""), call. = FALSE)
+  }
+}
 
-# Validate criteria
-criteria <- ifelse(length(args) > 3, args[4], "min")
+# ---------- Assign and normalize paths ----------
+input_folder <- normalizePath(params$input, mustWork = TRUE)
+parameters_file <- normalizePath(params$parameters, mustWork = TRUE)
+output_folder <- normalizePath(params$output, mustWork = TRUE)
+output_file_name <- ifelse(!is.null(params$output_file), params$output_file, "stn_file.stn")
+
+# ---------- Optional parameters ----------
+criteria <- ifelse(!is.null(params$criteria), params$criteria, "min")
 if (!criteria %in% c("min", "max", "mean", "median", "mode")) {
-  stop("Error: Invalid criteria. Options are: min, max, mean, median, mode", call. = FALSE)
+  stop("Invalid criteria. Options: min, max, mean, median, mode", call. = FALSE)
 }
 
-# Validate significancy
-significancy <- ifelse(length(args) > 4, as.numeric(args[5]), 2)
-if (is.na(significancy) || !is.numeric(significancy)) {
-  stop("Error: Invalid significancy. Please provide a numeric value.", call. = FALSE)
+significance <- ifelse(!is.null(params$significance), as.numeric(params$significance), 2)
+if (is.na(significance)) {
+  stop("Invalid significance. Must be numeric.", call. = FALSE)
 }
 
-# Validate significancy
-type_permutation_value <- ifelse(length(args) > 5, as.numeric(args[6]), 3)
-if (is.na(type_permutation_value) || !is.numeric(type_permutation_value) || type_permutation_value < 1 || type_permutation_value > 6) {
-  stop("Error: Invalid type permutation value. Please provide a numeric value between 1 and 6.", call. = FALSE)
+type_order_index <- ifelse(!is.null(params$type_order), as.numeric(params$type_order), 3)
+if (is.na(type_order_index) || type_order_index < 1 || type_order_index > 6) {
+  stop("Invalid type_order. Must be a number between 1 and 6.", call. = FALSE)
 }
 
-# Permutations of types
-types_permutations <- list(
+# ---------- Define type order permutations ----------
+type_order_list <- list(
   c("START", "STANDARD", "END"),
   c("START", "END", "STANDARD"),
   c("STANDARD", "START", "END"),
@@ -83,27 +82,23 @@ types_permutations <- list(
   c("END", "START", "STANDARD"),
   c("END", "STANDARD", "START")
 )
+type_priority <- type_order_list[[type_order_index]]
 
-# Validate type permutation value
-type_priority <- types_permutations[[type_permutation_value]]
-if (is.null(type_priority)) {
-  stop("Error: Invalid type permutation value.", call. = FALSE)
-}
-
-# Read the parameters file
+# ---------- Load parameters file ----------
 parameters <- read_parameters_file(parameters_file = parameters_file)
 
-# Process the data
+# ---------- Generate STN file ----------
 stn_file <- generate_stn_file(
-  irace_folder=irace_folder,
-  parameters=parameters,
-  criteria=criteria,
-  significancy=significancy,
-  type_priority=type_priority
+  irace_folder = input_folder,
+  parameters = parameters,
+  criteria = criteria,
+  significancy = significance,
+  type_priority = type_priority
 )
 
-# Save the STN file
+# ---------- Save result ----------
 save_file(
-  stn_file=stn_file,
-  output_folder=output_folder
+  stn_file = stn_file,
+  output_folder = output_folder,
+  output_file = output_file_name
 )

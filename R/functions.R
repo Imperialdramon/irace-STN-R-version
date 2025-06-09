@@ -432,22 +432,31 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
 #'
 #' @param stn_file A data frame containing the STN information.
 #' @param output_folder A string specifying the path to the output folder.
+#' @param output_file A string specifying the name of the output file (e.g., "my_output.stn").
 #'
 #' @return None. The function writes the file to disk.
 #'
 #' @examples
 #' \dontrun{
-#' save_file(stn_file, "output/")
+#' save_file(stn_file, "output/", "custom_name.stn")
 #' }
-save_file <- function(stn_file, output_folder) {
-  # Check if output folder exists, if not, create it
+save_file <- function(stn_file, output_folder, output_file = "stn_file.txt") {
+  # Create output folder if it does not exist
   if (!dir.exists(output_folder)) {
     dir.create(output_folder, recursive = TRUE)
     message("Output folder created: ", output_folder)
   }
-  # Define output file path
-  stn_file_path <- file.path(output_folder, "stn_file.txt")
-  # Write the STN file with column names as the first line
-  write.table(stn_file, file = stn_file_path, sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
+
+  # Define output file path with custom name
+  stn_file_path <- file.path(output_folder, output_file)
+
+  # Write STN file with column headers
+  write.table(stn_file,
+              file = stn_file_path,
+              sep = "\t",
+              row.names = FALSE,
+              col.names = TRUE,
+              quote = FALSE)
+
   message("STN file successfully saved in: ", stn_file_path)
 }

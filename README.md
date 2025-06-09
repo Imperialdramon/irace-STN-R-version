@@ -18,13 +18,17 @@ The goal is to compile all runs into a single structured network file (STN-i), w
 
 ## Project Structure
 
-/Tesis/irace-STN-R-version/
-├── R/
-│   ├── main.R           # Main execution script
-│   ├── functions.R      # Functions for reading, processing, and saving
-├── Tests/               # Example test files
-│   ├── parameters.csv   # Parameter definition file
-│   ├── irace-files/     # Directory with irace output files (.Rdata)
+/irace-STN-R-version/
+├── R/                            # Main R scripts
+│   ├── main.R                    # Entry point for execution (uses --param=value arguments)
+│   ├── functions.R               # Contains utility functions for reading input, processing data, and saving STN files
+│
+├── Experiments/                 # Folder containing example experimental setups
+│   ├── AlgorithmName/           # Directory for a specific algorithm (e.g., ACOTSP, PSO-X, etc.)
+│   │   ├── ScenarioName/        # Directory for a specific scenario within that algorithm
+│   │   │   ├── Data/            # Contains irace output files (.Rdata and execution logs)
+│   │   │   ├── Result/          # Output folder where the generated STN-i file will be saved
+│   │   ├── Parameters/          # Contains the parameter definition file (CSV) with value ranges and location codes
 
 ---
 
@@ -32,18 +36,26 @@ The goal is to compile all runs into a single structured network file (STN-i), w
 
 From the project root, using Rscript:
 
-Rscript R/main.R <irace_folder> <parameters_file> <output_folder> [criteria] [significancy] [type_permutation_value]
+Rscript R/main.R \
+  --input=<irace_folder> \
+  --parameters=<parameters_file> \
+  --output=<output_folder> \
+  [--criteria=mean] \
+  [--significance=2] \
+  [--type_order=3] \
+  [--output_file=custom_name.txt]
 
 ### Required Arguments:
 
-| Argument               | Description                                                                                  | Default       |
-|------------------------|----------------------------------------------------------------------------------------------|---------------|
-| `irace_folder`         | Folder containing the irace output files (`.Rdata`).                                         | —             |
-| `parameters_file`      | CSV file defining the parameter configurations.                                              | —             |
-| `output_folder`        | Folder where the output STN-i file will be generated.                                        | —             |
-| `criteria`             | Selection method for configuration quality (`min`, `max`, `mean`, `median`, `mode`).         | `min`         |
-| `significancy`         | Number of decimal places for rounding the quality values.                                    | 2             |
-| `type_permutation_value` | Integer index selecting the priority order for types when `original_type = FALSE`.         | 3             |
+| Argument           | Description                                                                                      | Default       |
+|--------------------|--------------------------------------------------------------------------------------------------|---------------|
+| `--input`          | Folder containing the irace output files (`.Rdata`).                                              | —             |
+| `--parameters`     | CSV file defining the parameter configurations.                                                   | —             |
+| `--output`         | Folder where the output STN-i file will be saved.                                                 | —             |
+| `--criteria`       | Selection method for configuration quality (`min`, `max`, `mean`, `median`, `mode`).             | `min`         |
+| `--significance`   | Number of decimal places to round quality values.                                                 | 2             |
+| `--type_order`     | Integer (1–6) indicating the priority order for types when merging configurations.               | 3             |
+| `--output_file`    | File name for the output STN-i file (e.g., `STN-i-L0.txt`).                                       | `stn_file.stn`|
 
 ---
 
@@ -112,7 +124,14 @@ Where:
 
 ## Example Execution
 
-Rscript R/main.R Tests/ACOTSP-N/Data Tests/parameters.csv Tests/ACOTSP-N/Results mean 2 1
+Rscript R/main.R \
+  --input=Experiments/ACOTSP/E1-BL-N/Data \
+  --parameters=Experiments/ACOTSP/Parameters/L0.csv \
+  --output=Experiments/ACOTSP/E1-BL-N/Result \
+  --criteria=mean \
+  --significance=2 \
+  --type_order=1 \
+  --output_file=STN-i-L0.txt
 
 This command will process the irace runs, calculate the location qualities using the mean, and round the values to 2 decimal places, using the first permutation of types to priorize the updates of locations.
 
