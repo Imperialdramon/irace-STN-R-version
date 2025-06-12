@@ -1,14 +1,48 @@
+# nolint start
+
 #########################################################################
-# Irace Caster - STN File Generator for Single Algorithms
+# STN-i Generator Script for Single Algorithm Executions
 # Author: Pablo Estobar
-# Date: May 2025
+#
 # Description:
-# This script processes the output from multiple runs of a single
-# algorithm executed with irace (.Rdata files). It reads:
-#   - The execution result files (text format)
-#   - The parameters configuration file
-#   - The location mapping file
-# Using this data, the script generates a consolidated STN file.
+# This script processes the output of irace executions for a single
+# algorithm. It uses:
+#   - Execution result files from irace runs (text format)
+#   - Parameter configuration file
+#   - Location mapping file (optional, if used inside `read_parameters_file`)
+#
+# It consolidates the trajectory data into a Search Trajectory Network (STN-i),
+# applying a priority scheme over node types and aggregating fitness based on
+# a specified criteria.
+#
+# Usage:
+# Rscript generate_stn_i.R --input=<irace_output_folder> 
+#                          --parameters=<parameters_file> 
+#                          --output=<output_folder>
+#                          [--output_file=<name>] 
+#                          [--criteria=<aggregation_criteria>] 
+#                          [--significance=<digits>]
+#
+# Arguments:
+# --input        : (Required) Folder path containing irace execution outputs.
+# --parameters   : (Required) Path to the parameters file used by irace.
+# --output       : (Required) Path to the output folder for the generated STN file.
+# --output_file  : (Optional) File name for the resulting .stn file (default: "stn_file.stn").
+# --criteria     : (Optional) Aggregation function for fitness values across runs.
+#                  Options: "min", "max", "mean", "median", "mode". Default is "min".
+# --significance : (Optional) Numeric precision used for rounding values. Default is 2.
+#
+# Requirements:
+# - R with the `irace` package (version >= 4.2).
+# - Auxiliary functions must be available in "R/functions.R".
+#
+# Output:
+# - A single `.stn` file stored in the output folder.
+#
+# Notes:
+# - The script assumes a fixed priority order for node topology: STANDARD < START < END.
+# - The structure and attributes of the final STN-i are compatible with downstream
+#   visualization and analysis tools for STN-based workflows.
 #########################################################################
 
 # ---------- Load required packages ----------
@@ -68,26 +102,12 @@ if (is.na(significance)) {
   stop("Invalid significance. Must be numeric.", call. = FALSE)
 }
 
-type_order_index <- ifelse(!is.null(params$type_order), as.numeric(params$type_order), 3)
-if (is.na(type_order_index) || type_order_index < 1 || type_order_index > 6) {
-  stop("Invalid type_order. Must be a number between 1 and 6.", call. = FALSE)
-}
-
-# ---------- Define type order permutations ----------
-type_order_list <- list(
-  c("START", "STANDARD", "END"),
-  c("START", "END", "STANDARD"),
-  c("STANDARD", "START", "END"),
-  c("STANDARD", "END", "START"),
-  c("END", "START", "STANDARD"),
-  c("END", "STANDARD", "START")
-)
-type_priority <- type_order_list[[type_order_index]]
-
 # ---------- Load parameters file ----------
 parameters <- read_parameters_file(parameters_file = parameters_file)
 
-# ---------- Generate STN file ----------
+# ---------- Generate STN-i file ----------
+type_priority <- c("STANDARD", "START", "END")
+
 stn_file <- generate_stn_file(
   irace_folder = input_folder,
   parameters = parameters,
@@ -97,8 +117,15 @@ stn_file <- generate_stn_file(
 )
 
 # ---------- Save result ----------
-save_file(
-  stn_file = stn_file,
-  output_folder = output_folder,
-  output_file = output_file_name
-)
+
+# Create output folder if it does not exist
+if (!dir.exists(output_folder)) {
+  dir.create(output_folder, recursive = TRUE)
+  message("Output folder created: ", output_folder)
+}
+
+output_file_path <- file.path(output_folder, output_file_name)
+
+save_file(stn_file = stn_file, output_file_path = output_file_path)
+
+# nolint end

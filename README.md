@@ -42,7 +42,6 @@ Rscript R/main.R \
   --output=<output_folder> \
   [--criteria=mean] \
   [--significance=2] \
-  [--type_order=3] \
   [--output_file=custom_name.txt]
 
 ### Required Arguments:
@@ -54,25 +53,13 @@ Rscript R/main.R \
 | `--output`         | Folder where the output STN-i file will be saved.                                                 | —             |
 | `--criteria`       | Selection method for configuration quality (`min`, `max`, `mean`, `median`, `mode`).             | `min`         |
 | `--significance`   | Number of decimal places to round quality values.                                                 | 2             |
-| `--type_order`     | Integer (1–6) indicating the priority order for types when merging configurations.               | 3             |
 | `--output_file`    | File name for the output STN-i file (e.g., `STN-i-L0.txt`).                                       | `stn_file.stn`|
 
 ---
 
 ### Type Priority Permutations
 
-The `type_permutation_value` corresponds to one of the following priority orders used to decide the relative importance of node types when combining results. This affects how locations inherit the "best" type from their nodes.
-
-| Index | Type Priority Order                      |
-|-------|-----------------------------------------|
-| 1     | `c("START", "STANDARD", "END")`         |
-| 2     | `c("START", "END", "STANDARD")`         |
-| 3     | `c("STANDARD", "START", "END")`         |
-| 4     | `c("STANDARD", "END", "START")`         |
-| 5     | `c("END", "START", "STANDARD")`         |
-| 6     | `c("END", "STANDARD", "START")`         |
-
-For example, if `type_permutation_value = 3`, the priority order is: `"STANDARD"` < `"START"` < `"END"`.
+The priority order of types is: `"STANDARD"` < `"START"` < `"END"`.
 
 ---
 
@@ -130,7 +117,6 @@ Rscript R/main.R \
   --output=Experiments/ACOTSP/E1-BL-N/Result \
   --criteria=mean \
   --significance=2 \
-  --type_order=1 \
   --output_file=STN-i-L0.txt
 
 This command will process the irace runs, calculate the location qualities using the mean, and round the values to 2 decimal places, using the first permutation of types to priorize the updates of locations.

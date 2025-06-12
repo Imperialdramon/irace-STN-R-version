@@ -1,3 +1,5 @@
+# nolint start
+
 #' Reads and processes a parameters definition file for irace tuning.
 #'
 #' This function reads a CSV file that defines the parameters to be used in an irace tuning scenario,
@@ -431,32 +433,34 @@ generate_stn_file <- function(irace_folder, parameters, criteria = "min", signif
 #' This function saves the generated STN file (data frame) as a text file with column names.
 #'
 #' @param stn_file A data frame containing the STN information.
-#' @param output_folder A string specifying the path to the output folder.
-#' @param output_file A string specifying the name of the output file (e.g., "my_output.stn").
+#' @param output_file_path A string specifying the path where the STN file will be saved.
 #'
 #' @return None. The function writes the file to disk.
 #'
 #' @examples
 #' \dontrun{
-#' save_file(stn_file, "output/", "custom_name.stn")
+#' save_file(stn_file, "output/stn_file.txt")
 #' }
-save_file <- function(stn_file, output_folder, output_file = "stn_file.txt") {
-  # Create output folder if it does not exist
-  if (!dir.exists(output_folder)) {
-    dir.create(output_folder, recursive = TRUE)
-    message("Output folder created: ", output_folder)
+save_file <- function(stn_file, output_file_path) {
+  # Check if the output file path is valid
+  if (!dir.exists(dirname(output_file_path))) {
+    stop("Error: The output directory does not exist.", call. = FALSE)
   }
 
-  # Define output file path with custom name
-  stn_file_path <- file.path(output_folder, output_file)
+  # Ensure the output file has a .txt extension
+  if (!grepl("\\.txt$", output_file_path)) {
+    output_file_path <- paste0(output_file_path, ".txt")
+  }
 
   # Write STN file with column headers
   write.table(stn_file,
-              file = stn_file_path,
+              file = output_file_path,
               sep = "\t",
               row.names = FALSE,
               col.names = TRUE,
               quote = FALSE)
 
-  message("STN file successfully saved in: ", stn_file_path)
+  message("STN file successfully saved in: ", output_file_path)
 }
+
+# nolint end
