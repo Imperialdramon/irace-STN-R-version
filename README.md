@@ -55,7 +55,7 @@ Rscript R/main.R \
 | `--output`       | Folder to store the resulting STN-i file                                                      | —                |
 | `--criteria`     | Aggregation method for configuration quality: `min`, `max`, `mean`, `median`, `mode`         | `min`            |
 | `--significance` | Number of decimal places to round fitness values                                              | `2`              |
-| `--output_file`  | Output file name for the STN-i file (e.g., `STN-i-L0.txt`)                                    | `stn_file.stn`   |
+| `--output_file`  | Output file name for the STN-i file (e.g., `STN-i-L0.txt`)                                    | `stn_i_file.txt`   |
 
 ---
 

@@ -27,7 +27,7 @@
 # --input        : (Required) Folder path containing irace execution outputs.
 # --parameters   : (Required) Path to the parameters file used by irace.
 # --output       : (Required) Path to the output folder for the generated STN file.
-# --output_file  : (Optional) File name for the resulting .stn file (default: "stn_file.stn").
+# --output_file  : (Optional) File name for the resulting .txt file (default: "stn_i_file.txt").
 # --criteria     : (Optional) Aggregation function for fitness values across runs.
 #                  Options: "min", "max", "mean", "median", "mode". Default is "min".
 # --significance : (Optional) Numeric precision used for rounding values. Default is 2.
@@ -37,7 +37,7 @@
 # - Auxiliary functions must be available in "R/functions.R".
 #
 # Output:
-# - A single `.stn` file stored in the output folder.
+# - A single `.txt` file stored in the output folder.
 #
 # Notes:
 # - The script assumes a fixed priority order for node topology: STANDARD < START < END.
@@ -89,7 +89,7 @@ for (param_name in required_args) {
 input_folder <- normalizePath(params$input, mustWork = TRUE)
 parameters_file <- normalizePath(params$parameters, mustWork = TRUE)
 output_folder <- normalizePath(params$output, mustWork = TRUE)
-output_file_name <- ifelse(!is.null(params$output_file), params$output_file, "stn_file.stn")
+output_file_name <- ifelse(!is.null(params$output_file), params$output_file, "stn_i_file.txt")
 
 # ---------- Optional parameters ----------
 criteria <- ifelse(!is.null(params$criteria), params$criteria, "min")
