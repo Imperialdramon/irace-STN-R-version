@@ -3,7 +3,7 @@
 # ==============================================================================
 # Script: run_all.sh
 # Description: Executes multiple Rscript calls to generate STN-i output files
-#              for various experiments and levels. Logs output to run_all_logs.log.
+#              for various experiments and levels. Logs output to Logs/run_all_logs.log.
 #
 # Usage:
 #   1. Make the script executable:
@@ -13,15 +13,19 @@
 #        ./run_all.sh
 #
 #   Output:
-#     - A log file will be created or overwritten: run_all_logs.log
+#     - A log file will be created or overwritten: Logs/run_all_logs.log
 #     - STN-i output files will be generated per experiment/level in their folders.
 # ==============================================================================
 
 # Optional: Exit immediately if a command exits with a non-zero status
 # set -e
 
-# Log file path (stored in current directory)
-LOG_FILE="./run_all_logs.log"
+# Ensure the Logs directory exists
+LOG_DIR="./Logs"
+mkdir -p "$LOG_DIR"
+
+# Define log file path
+LOG_FILE="$LOG_DIR/run_all_logs.log"
 echo "=== Run started at $(date) ===" > "$LOG_FILE"
 
 # Function to execute Rscript with logging
@@ -48,7 +52,7 @@ run_rscript() {
 declare -A experiments
 experiments["ACOTSP"]="E1-BL-WSR-2000 E2-BL-SR-2000 E3-BH-WSR-2000 E4-BH-SR-2000"
 experiments["MMASQAP"]="E1-BL-WSR-60 E2-BL-SR-60 E3-BH-WSR-60 E4-BH-SR-60"
-experiments["PSO-X"]="E1-BL-WSR-Mix E2-BL-WSR-Mul E3-BL-WSR-Uni E4-BL-SR-Mix E5-BL-SR-Mul E6-BL-SR-Uni E7-BH-WSR-Mix E8-BH-WSR-Mul E9-BH-WSR-Uni E10-BH-SR-Mix E11-BH-SR-Mul E12-BH-SR-Uni"
+experiments["PSO-X"]="E1-BL-WSR-Mix E2-BL-SR-Mix E3-BH-WSR-Mix E4-BH-SR-Mix E5-BL-WSR-Mul E6-BL-SR-Mul E7-BH-WSR-Mul E8-BH-SR-Mul E9-BL-WSR-Uni E10-BL-SR-Uni E11-BH-WSR-Uni E12-BH-SR-Uni"
 
 # Parameter levels to be applied
 levels="L1 L2 L3"
