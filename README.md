@@ -121,12 +121,12 @@ Example:
 
 ```bash
 Rscript R/main.R \
-  --input=Experiments/ACOTSP/E1-BL-N/Data \
-  --parameters=Experiments/ACOTSP/Parameters/L0.csv \
-  --output=Experiments/ACOTSP/E1-BL-N/Result \
+  --input=Experiments/ACOTSP/E1-BL-WSR-2000/Data \
+  --parameters=Experiments/ACOTSP/Parameters/L1.csv \
+  --output=Experiments/ACOTSP/E1-BL-WSR-2000/Result \
   --criteria=mean \
   --significance=2 \
-  --output_file=STN-i-L0.txt
+  --output_file=STN-i-E1-BL-WSR-L1.txt
 ```
 
 ---
