@@ -1,4 +1,4 @@
-=== Run started at Fri Jun 20 19:20:22 -04 2025 ===
+=== Run started at Thu Jul  3 18:07:11 -04 2025 ===
 === Processing algorithm: ACOTSP ===
 >> Running for output: STN-i-E1-BL-WSR-2000-L1.txt
 Processing 20 .Rdata files (runs)
@@ -242,4 +242,4 @@ STN file successfully saved in: /home/imperialdramon/Tesis/irace-STN-R-version/E
 Processing 20 .Rdata files (runs)
 STN file successfully saved in: /home/imperialdramon/Tesis/irace-STN-R-version/Experiments/MMASQAP/E4-BH-SR-60/Result/STN-i-E4-BH-SR-60-L3.txt
 ✅ Success: Generated STN-i-E4-BH-SR-60-L3.txt
-=== Run finished at Fri Jun 20 19:46:51 -04 2025 ===
+=== Run finished at Thu Jul  3 18:32:10 -04 2025 ===
